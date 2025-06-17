@@ -1,0 +1,74 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-13T15:11:00+00:00\n"
+"PO-Revision-Date: 2025-05-13 15:11+0000\n"
+"Last-Translator: \n"
+"Language-Team: "
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+"X-Generator: \n"
+
+msgid "plugins.reports.responseExporter.displayName"
+msgstr "Review Response Exporter Plugin"
+
+msgid "plugins.reports.responseExporter.description"
+msgstr "Este plugin gera um relatório em formato CSV (planilha eletrônica) com as respostas das avaliações associadas às submissões. Ele oferece duas opções de exportação: uma para incluir apenas respostas numéricas e outra para exportar todas as respostas."
+
+msgid "plugins.reports.responseExporter.submission.Id"
+msgstr "Id da submissão"
+
+msgid "plugins.reports.responseExporter.submission.title"
+msgstr "Título da Submissão"
+
+msgid "plugins.reports.responseExporter.reviewer"
+msgstr "Avaliador"
+
+msgid "plugins.reports.responseExporter.reviewer.id"
+msgstr "Id do Avaliador"
+
+msgid "plugins.reports.responseExporter.reviewer.email"
+msgstr "E-mail do avaliador"
+
+msgid "plugins.reports.responseExporter.reviewer.familyName"
+msgstr "Sobrenome do avaliador"
+
+msgid "plugins.reports.responseExporter.reviewer.givenName"
+msgstr "Nome do avaliador"
+
+msgid "plugins.reports.responseExporter.author.email"
+msgstr "E-mail do autor"
+
+msgid  "plugins.reports.responseExporter.settings.title"
+msgstr  "Configuração do plugin Exportador de Respostas"
+
+msgid  "plugins.reports.responseExporter.settings.numericalAnswersEnabled"
+msgstr  "Habilita/Desabilita respostas numéricas"
+
+msgid  "plugins.reports.responseExporter.settings.description"
+msgstr  "Este plugin permite a extração das notas de avaliação associadas a cada submissão. Ao habilitá-lo, você terá acesso a um relatório com as notas atribuídas pelos revisores, facilitando a análise e o gerenciamento dos resultados do processo de avaliação."
+
+msgid  "plugins.reports.responseExporter.settings.validation"
+msgstr  "Escolha se quer apenas respostas numéricas"
+
+msgid   "plugins.reports.responseExporter.settings.required"
+msgstr  "Este campo é obrigatório."
+
+msgid   "plugins.reports.responseExporter.settings.form.radio.labelYes"
+msgstr  "Sim"
+
+msgid   "plugins.reports.responseExporter.settings.form.radio.labelNo"
+msgstr  "Não"
+
+msgid   "plugins.reports.responseExporter.settings.form.numericalLabel"
+msgstr  "Deseja extrair apenas respostas numéricas?"
+
+msgid "plugins.reports.responseExporter.response.value"
+msgstr "Resposta"
+
+msgid "plugins.reports.responseExporter.response.type"
+msgstr "Tipo de resposta"
