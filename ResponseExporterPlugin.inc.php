@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/reports/responseExporter/ResponseExporterPlugin.inc.php
+ * @file plugins/reports/responseExporter/ResponseExporterPlugin.php
  *
  * Copyright (c) 2025 Arquivo Nacional
  * Copyright (c) 2025 Felipe Maia Barbosa
@@ -13,7 +13,18 @@
  * @brief Class that performs operations using an instance of ResponseExporterManager to export reports.
  */
 
-import('lib.pkp.classes.plugins.GenericPlugin');
+namespace APP\plugins\reports\responseExporter;
+
+use APP\core\Application;
+use APP\template\TemplateManager;
+use PKP\config\Config;
+use PKP\core\JSONMessage;
+use PKP\core\PKPApplication;
+use PKP\db\DAORegistry;
+use PKP\linkAction\LinkAction;
+use PKP\linkAction\request\AjaxModal;
+use PKP\linkAction\request\RedirectAction;
+use PKP\plugins\GenericPlugin;
 
 class ResponseExporterPlugin extends GenericPlugin
 {
@@ -23,11 +34,12 @@ class ResponseExporterPlugin extends GenericPlugin
     public function register($category, $path, $mainContextId = null)
     {
         $success = parent::register($category, $path, $mainContextId);
-        if (!Config::getVar('reports', 'installed') || defined('RUNNING_UPGRADE')) {
+        // NOTE: this used to check Config::getVar('reports', 'installed'), a section/key
+        // that doesn't exist in config.inc.php. Fixed to the standard 'general.installed' check.
+        if (!Config::getVar('general', 'installed') || defined('RUNNING_UPGRADE')) {
             return true;
         }
 
-        $this->import('ResponseExporterDAO');
         $responseExporterDAO = new ResponseExporterDAO();
         DAORegistry::registerDAO('ResponseExporterDAO', $responseExporterDAO);
 
@@ -57,36 +69,34 @@ class ResponseExporterPlugin extends GenericPlugin
     {
         $router = $request->getRouter();
         $dispatcher = $request->getDispatcher();
-        import('lib.pkp.classes.linkAction.request.AjaxModal');
-        import('lib.pkp.classes.linkAction.request.RedirectAction');
         return array_merge(
-            $this->getEnabled() ? array(
+            $this->getEnabled() ? [
                 new LinkAction(
                     'settings',
                     new AjaxModal(
-                        $router->url($request, null, null, 'manage', null, array('verb' => 'settings', 'plugin' => $this->getName(), 'category' => 'reports')),
+                        $router->url($request, null, null, 'manage', null, ['verb' => 'settings', 'plugin' => $this->getName(), 'category' => 'reports']),
                         $this->getDisplayName()
                     ),
                     __('manager.plugins.settings'),
                     null
                 ),
-            ) : array(),
-            $this->getEnabled() ? array(
+            ] : [],
+            $this->getEnabled() ? [
                 new LinkAction(
                     'export',
                     new RedirectAction($dispatcher->url(
                         $request,
-                        ROUTE_PAGE,
+                        PKPApplication::ROUTE_PAGE,
                         null,
                         'stats',
                         'reports',
                         'report',
-                        array('pluginName' => $this->getName())
+                        ['pluginName' => $this->getName()]
                     )),
                     __('manager.statistics.reports'),
                     null
                 ),
-            ) : array(),
+            ] : [],
             parent::getActions($request, $verb),
         );
     }
@@ -100,11 +110,12 @@ class ResponseExporterPlugin extends GenericPlugin
             case 'settings':
                 $context = $request->getContext();
 
-                AppLocale::requireComponents(LOCALE_COMPONENT_APP_COMMON, LOCALE_COMPONENT_PKP_MANAGER);
+                // NOTE: AppLocale::requireComponents() was removed here. It was a no-op since 3.4.0
+                // (all locale keys are already loaded) and the AppLocale class itself no longer
+                // exists as of OJS/OMP 3.5.0.
                 $templateMgr = TemplateManager::getManager($request);
-                $templateMgr->registerPlugin('function', 'plugin_url', array($this, 'smartyPluginUrl'));
+                $templateMgr->registerPlugin('function', 'plugin_url', [$this, 'smartyPluginUrl']);
 
-                $this->import('ResponseExporterSettingsForm');
                 $form = new ResponseExporterSettingsForm($this, $context->getId());
 
                 if ($request->getUserVar('save')) {
@@ -130,21 +141,13 @@ class ResponseExporterPlugin extends GenericPlugin
      */
     public function display($args, $request)
     {
-
         $request = Application::get()->getRequest();
         $context = $request->getContext();
 
         $numericalAnswers = $this->getSetting($context->getId(), 'numericalAnswersEnabled');
         $args['numericalAnswersEnabled'] = $numericalAnswers;
 
-        if (!class_exists('ResponseExporterManager')) {
-            $this->import('ResponseExporterManager');
-        }
         $responseExporter = new ResponseExporterManager();
-
-        if (!class_exists('ResponseExporterDAO')) {
-            $this->import('ResponseExporterDAO');
-        }
         $responseExporterDAO = new ResponseExporterDAO();
 
         $responseExporter->setResponseExporterDAO($responseExporterDAO);

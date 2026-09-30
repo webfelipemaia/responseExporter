@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/reports/responseExporter/ResponseExporterManager.inc.php
+ * @file plugins/reports/responseExporter/ResponseExporterManager.php
  *
  * Copyright (c) 2025 Arquivo Nacional
  * Copyright (c) 2025 Felipe Maia Barbosa
@@ -14,7 +14,9 @@
  * @brief Response exporter plugin
  */
 
-import('lib.pkp.classes.plugins.ReportPlugin');
+namespace APP\plugins\reports\responseExporter;
+
+use PKP\plugins\ReportPlugin;
 
 class ResponseExporterManager extends ReportPlugin
 {
@@ -84,7 +86,9 @@ class ResponseExporterManager extends ReportPlugin
         $context = $request->getContext();
 
         $responseExporterDAO = $this->_responseExporterDAO;
-        AppLocale::requireComponents(LOCALE_COMPONENT_PKP_SUBMISSION);
+        // NOTE: AppLocale::requireComponents(LOCALE_COMPONENT_PKP_SUBMISSION) was removed here.
+        // It has been a no-op since 3.4.0 (all locale keys are already loaded) and the AppLocale
+        // class itself no longer exists as of OJS/OMP 3.5.0.
 
         // TODO: make date formatting editable
         // TODO: enable extraction in json format
@@ -140,7 +144,7 @@ class ResponseExporterManager extends ReportPlugin
         // Write header to CSV
         fputcsv($fp, $header);
         // Write data to CSV
-        foreach ($responseExporterDAO->getReviewInfo($context) as $reviewer) {
+        foreach ($responseExporterDAO->getReviewInfo($context->getId()) as $reviewer) {
             $reviewerId = $reviewer->reviewer_id;
             $row = [
                 $reviewer->submission_id,

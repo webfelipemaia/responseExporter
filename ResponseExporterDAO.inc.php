@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/reports/responseExporter/ResponseExporterDAO.inc.php
+ * @file plugins/reports/responseExporter/ResponseExporterDAO.php
  *
  * Copyright (c) 2025 Arquivo Nacional
  * Copyright (c) 2025 Felipe Maia Barbosa
@@ -13,7 +13,10 @@
  * @brief Response report plugin
  */
 
-import('lib.pkp.classes.submission.SubmissionComment');
+namespace APP\plugins\reports\responseExporter;
+
+use APP\core\Application;
+use PKP\db\DAO;
 
 class ResponseExporterDAO extends DAO
 {
@@ -32,22 +35,22 @@ class ResponseExporterDAO extends DAO
         // Query to retrieve reviewer, author and review response data
         $result = $this->retrieve(
             'SELECT ra.reviewer_id AS reviewer_id,
-					ra.submission_id AS submission_id,
-					ra.date_due AS review_date_due,
-					ra.date_response_due AS review_date_response_due,
-					reviewer.email AS reviewer_email,
-					rusg.setting_value AS reviewer_givenName,
-					rusf.setting_value AS reviewer_familyName,
-					author.email AS author_email
-			FROM review_assignments ra
-			LEFT JOIN submissions su ON ra.submission_id = su.submission_id
-			LEFT JOIN authors a ON su.current_publication_id = a.publication_id
-			LEFT JOIN users reviewer ON reviewer.user_id = ra.reviewer_id
-			LEFT JOIN user_settings rusg ON (reviewer.user_id = rusg.user_id AND rusg.setting_name = ? AND rusg.locale = ?)
-			LEFT JOIN user_settings rusf ON (reviewer.user_id = rusf.user_id AND rusf.setting_name = ? AND rusf.locale = ?)
-			LEFT JOIN users author ON (a.email = author.email AND ra.submission_id = a.publication_id)
-			WHERE su.context_id = ?
-			ORDER BY ra.reviewer_id',
+						ra.submission_id AS submission_id,
+						ra.date_due AS review_date_due,
+						ra.date_response_due AS review_date_response_due,
+						reviewer.email AS reviewer_email,
+						rusg.setting_value AS reviewer_givenName,
+						rusf.setting_value AS reviewer_familyName,
+						author.email AS author_email
+				FROM review_assignments ra
+				LEFT JOIN submissions su ON ra.submission_id = su.submission_id
+				LEFT JOIN authors a ON su.current_publication_id = a.publication_id
+				LEFT JOIN users reviewer ON reviewer.user_id = ra.reviewer_id
+				LEFT JOIN user_settings rusg ON (reviewer.user_id = rusg.user_id AND rusg.setting_name = ? AND rusg.locale = ?)
+				LEFT JOIN user_settings rusf ON (reviewer.user_id = rusf.user_id AND rusf.setting_name = ? AND rusf.locale = ?)
+				LEFT JOIN users author ON author.email = a.email
+				WHERE su.context_id = ?
+				ORDER BY ra.reviewer_id',
             [
                 'givenName',
                 $locale,
@@ -71,7 +74,7 @@ class ResponseExporterDAO extends DAO
 
 
         $result = $this->retrieve('
-			SELECT
+				SELECT
                 review_id,
                 response_value
             FROM
@@ -90,7 +93,7 @@ class ResponseExporterDAO extends DAO
 
         $result = $this->retrieve(
             '
-			SELECT
+				SELECT
                 review_id,
                 response_value
             FROM

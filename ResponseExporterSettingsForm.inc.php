@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/reports/responseExporter/ResponseExporterPlugin.inc.php
+ * @file plugins/reports/responseExporter/ResponseExporterSettingsForm.php
  *
  * Copyright (c) 2025 Arquivo Nacional
  * Copyright (c) 2025 Felipe Maia Barbosa
@@ -13,7 +13,13 @@
  * @brief Response report plugin
  */
 
-import('lib.pkp.classes.form.Form');
+namespace APP\plugins\reports\responseExporter;
+
+use APP\template\TemplateManager;
+use PKP\form\Form;
+use PKP\form\validation\FormValidator;
+use PKP\form\validation\FormValidatorCSRF;
+use PKP\form\validation\FormValidatorPost;
 
 class ResponseExporterSettingsForm extends Form
 {
