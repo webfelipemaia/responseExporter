@@ -16,10 +16,14 @@ Este plugin gera arquivos CSV contendo dados de revisores, autores e respostas d
 
 ## Compatibilidade
 
-Este plugin é compatível com:
+A partir da release **2.0.0.0**, o código do plugin foi portado para o estilo de plugin com namespace (PSR-4) exigido a partir do OJS/OMP 3.4, e é compatível com:
 
-- **OJS 3.x** (a partir de 3.2+)
-- **OMP 3.x**
+- **OJS/OMP 3.4.x**
+- **OJS/OMP 3.5.x**
+
+> Isso foi necessário porque o OJS/OMP 3.5 removeu por completo a função `import()` e a classe `AppLocale`, usadas pelo estilo legado de plugin (`.inc.php`, sem namespace). Veja [CHANGELOG.md](CHANGELOG.md) para os detalhes técnicos.
+
+Para instalações em **OJS/OMP 3.2 ou 3.3**, use a release **1.0.0.0** (branch/tag anterior a este port), que mantém o estilo legado de plugin compatível com essas versões.
 
 
 ## Instalação
@@ -78,6 +82,8 @@ O plugin é composto pelas seguintes classes principais:
 - `ResponseExporterManager`: Responsável pela geração e exportação do CSV.
 - `ResponseExporterDAO`: Lida com as consultas ao banco de dados para obter revisores e respostas.
 - `ResponseExporterSettingsForm`: Formulário de configuração no painel administrativo.
+
+Todas as classes vivem sob o namespace `APP\plugins\reports\responseExporter`, seguindo o padrão adotado pelos plugins nativos do OJS/OMP 3.4+ (ex.: `pkp/reviewReport`).
 
 
 ## Licença

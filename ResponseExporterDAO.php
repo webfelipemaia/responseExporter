@@ -34,7 +34,8 @@ class ResponseExporterDAO extends DAO
 
         // Query to retrieve reviewer, author and review response data
         $result = $this->retrieve(
-            'SELECT ra.reviewer_id AS reviewer_id,
+            'SELECT ra.review_id AS review_id,
+						ra.reviewer_id AS reviewer_id,
 						ra.submission_id AS submission_id,
 						ra.date_due AS review_date_due,
 						ra.date_response_due AS review_date_response_due,

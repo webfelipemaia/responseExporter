@@ -145,7 +145,12 @@ class ResponseExporterManager extends ReportPlugin
         fputcsv($fp, $header);
         // Write data to CSV
         foreach ($responseExporterDAO->getReviewInfo($context->getId()) as $reviewer) {
-            $reviewerId = $reviewer->reviewer_id;
+            // NOTE: this used to key $groupedResponses by $reviewer->reviewer_id (the reviewer's
+            // user id). review_form_responses.review_id references review_assignments.review_id
+            // (the review assignment's own id), an entirely different id space from reviewer_id.
+            // Whenever a reviewer_id numerically matched some other review's review_id, that
+            // review's answers silently leaked into this reviewer's row. Fixed to key by review_id.
+            $reviewId = $reviewer->review_id;
             $row = [
                 $reviewer->submission_id,
                 $reviewer->review_date_due,
@@ -158,8 +163,8 @@ class ResponseExporterManager extends ReportPlugin
             ];
 
             // Add the answers
-            if (isset($groupedResponses[$reviewerId])) {
-                $row = array_merge($row, $groupedResponses[$reviewerId]);
+            if (isset($groupedResponses[$reviewId])) {
+                $row = array_merge($row, $groupedResponses[$reviewId]);
             }
 
             // Fill with empty values ​​if necessary
