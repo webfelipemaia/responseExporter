@@ -14,7 +14,7 @@
 	{rdelim});
 </script>
 
-<form class="pkp_form" id="reportSettingsForm" method="post" action="{url router=$smarty.const.ROUTE_COMPONENT op="manage" category="reports" plugin=$pluginName verb="settings" save=true}">
+<form class="pkp_form" id="reportSettingsForm" method="post" action="{url router=\PKP\core\PKPApplication::ROUTE_COMPONENT op="manage" category="reports" plugin=$pluginName verb="settings" save=true}">
 	{csrf}
 	{include file="controllers/notification/inPlaceNotification.tpl" notificationId="reportSettingsFormNotification"}
 

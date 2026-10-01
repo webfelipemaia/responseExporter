@@ -23,7 +23,7 @@ use PKP\form\validation\FormValidatorPost;
 
 class ResponseExporterSettingsForm extends Form
 {
-    // TODO: migrar para boas práticas de orientação a objetos
+    // TODO: replace the public properties with proper accessors
     /** @var int */
     public $_journalId;
 
