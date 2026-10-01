@@ -16,11 +16,18 @@
 
 namespace APP\plugins\reports\responseExporter;
 
+use PKP\db\DAORegistry;
 use PKP\plugins\ReportPlugin;
+use PKP\reviewForm\ReviewFormDAO;
+use PKP\reviewForm\ReviewFormElement;
+use PKP\reviewForm\ReviewFormElementDAO;
 
 class ResponseExporterManager extends ReportPlugin
 {
     private $_responseExporterDAO;
+
+    /** @var array<int, ?ReviewFormElement> Review form elements already loaded, by id */
+    private $_reviewFormElements = [];
 
     /**
     * @copydoc Plugin::register()
@@ -82,75 +89,71 @@ class ResponseExporterManager extends ReportPlugin
     */
     public function display($args, $request)
     {
-
         $context = $request->getContext();
-
         $responseExporterDAO = $this->_responseExporterDAO;
-        // NOTE: AppLocale::requireComponents(LOCALE_COMPONENT_PKP_SUBMISSION) was removed here.
-        // It has been a no-op since 3.4.0 (all locale keys are already loaded) and the AppLocale
-        // class itself no longer exists as of OJS/OMP 3.5.0.
+        $numericalOnly = !empty($args['numericalAnswersEnabled']);
 
         // TODO: make date formatting editable
         // TODO: enable extraction in json format
-        header('content-type: text/comma-separated-values');
+        header('content-type: text/csv; charset=utf-8');
         header('content-disposition: attachment; filename=reviews-' . date('Ymd') . '.csv');
 
+        // One column per review form element (question), in form/sequence order.
+        // Keying by element keeps every column aligned to the same question in all
+        // rows, even when some answers are missing or filtered out.
+        $columns = [];
         $groupedResponses = [];
-
-        // Decide which method to call based on the configuration
-        $responses = !empty($args['numericalAnswersEnabled'])
-            ? $responseExporterDAO->getNumericalResponses()
-            : $responseExporterDAO->getResponses();
-
-        foreach ($responses as $response) {
-            $reviewId = $response->review_id;
-            if (!isset($groupedResponses[$reviewId])) {
-                $groupedResponses[$reviewId] = [];
+        foreach ($responseExporterDAO->getResponses($context->getId()) as $response) {
+            $element = $this->getReviewFormElement((int) $response->review_form_element_id);
+            if (!$element) {
+                continue;
             }
-            $groupedResponses[$reviewId][] = $response->response_value;
-        }
 
-        // Determine the maximum number of columns for responses
-        $maxResponseColumns = array_reduce(
-            $groupedResponses,
-            function ($acv, $item) {
-                return max($acv, count($item));
-            },
-            0
-        );
+            $value = $this->formatResponse(
+                $element,
+                $responseExporterDAO->convertFromDB($response->response_value, $response->response_type)
+            );
+            if ($numericalOnly && !is_numeric($value)) {
+                continue;
+            }
+
+            $columns[$element->getId()] = $element;
+            $groupedResponses[$response->review_id][$element->getId()] = $value;
+        }
 
         // CSV Header
         $header = [
-            'submission_id' => __('plugins.reports.reviews.submissionId'),
-                    'review_date_due' => __('reviewer.submission.reviewDueDate'),
-                    'review_date_response_due' => __('reviewer.submission.responseDueDate'),
-                    'reviewer_id' => __('plugins.reports.responseExporter.reviewer.id'),
-                    'reviewer_email' => __('plugins.reports.responseExporter.reviewer.email'),
-                    'reviewer_familyName' => __('plugins.reports.responseExporter.reviewer.familyName'),
-                    'reviewer_givenName' => __('plugins.reports.responseExporter.reviewer.givenName'),
-                    'author_email' => __('plugins.reports.responseExporter.author.email'),
+            __('plugins.reports.responseExporter.submission.Id'),
+            __('reviewer.submission.reviewDueDate'),
+            __('reviewer.submission.responseDueDate'),
+            __('plugins.reports.responseExporter.reviewer.id'),
+            __('plugins.reports.responseExporter.reviewer.email'),
+            __('plugins.reports.responseExporter.reviewer.familyName'),
+            __('plugins.reports.responseExporter.reviewer.givenName'),
+            __('plugins.reports.responseExporter.author.email'),
         ];
 
-        $responseValueName = __('plugins.reports.responseExporter.response.value');
-
-        for ($i = 1; $i <= $maxResponseColumns; $i++) {
-            $header[] = $responseValueName . '_' . $i;
+        $reviewFormIds = array_unique(array_map(fn ($element) => $element->getReviewFormId(), $columns));
+        $columnNumber = 0;
+        foreach ($columns as $element) {
+            $columnNumber++;
+            $label = $this->toPlainText($element->getLocalizedQuestion());
+            if ($label === '') {
+                $label = __('plugins.reports.responseExporter.response.value') . '_' . $columnNumber;
+            }
+            // Disambiguate questions when more than one review form is exported
+            if (count($reviewFormIds) > 1) {
+                $label = $this->getReviewFormTitle($element->getReviewFormId()) . ' - ' . $label;
+            }
+            $header[] = $label;
         }
 
         // Write data directly to script output
         $fp = fopen('php://output', 'wt');
         // Add BOM (Byte Order Mark) to ensure Excel opens the file correctly
         fprintf($fp, chr(0xEF) . chr(0xBB) . chr(0xBF));
-        // Write header to CSV
         fputcsv($fp, $header);
-        // Write data to CSV
         foreach ($responseExporterDAO->getReviewInfo($context->getId()) as $reviewer) {
-            // NOTE: this used to key $groupedResponses by $reviewer->reviewer_id (the reviewer's
-            // user id). review_form_responses.review_id references review_assignments.review_id
-            // (the review assignment's own id), an entirely different id space from reviewer_id.
-            // Whenever a reviewer_id numerically matched some other review's review_id, that
-            // review's answers silently leaked into this reviewer's row. Fixed to key by review_id.
-            $reviewId = $reviewer->review_id;
             $row = [
                 $reviewer->submission_id,
                 $reviewer->review_date_due,
@@ -162,19 +165,106 @@ class ResponseExporterManager extends ReportPlugin
                 $reviewer->author_email,
             ];
 
-            // Add the answers
-            if (isset($groupedResponses[$reviewId])) {
-                $row = array_merge($row, $groupedResponses[$reviewId]);
-            }
-
-            // Fill with empty values ​​if necessary
-            while (count($row) < count($header)) {
-                $row[] = '';
+            // Responses are keyed by review_id (review_form_responses.review_id
+            // references review_assignments.review_id), never by reviewer_id.
+            $answers = $groupedResponses[$reviewer->review_id] ?? [];
+            foreach (array_keys($columns) as $elementId) {
+                $row[] = $answers[$elementId] ?? '';
             }
 
             fputcsv($fp, $row);
         }
 
         fclose($fp);
+    }
+
+    /**
+     * Converts a stored response into the text shown to the reviewer.
+     *
+     * Radio buttons and checkboxes store the position of the chosen option(s);
+     * drop-down boxes store the key of the chosen option. Both are translated
+     * back to the option label.
+     *
+     * @param ReviewFormElement $element
+     * @param mixed $value Value already converted from its database type
+     *
+     * @return string
+     */
+    protected function formatResponse($element, $value)
+    {
+        $options = (array) $element->getLocalizedPossibleResponses();
+        switch ($element->getElementType()) {
+            case ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS:
+                return $this->getOptionLabel(array_values($options), $value);
+            case ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX:
+                return $this->getOptionLabel($options, $value);
+            case ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES:
+                $positions = array_values($options);
+                return implode('; ', array_map(
+                    fn ($position) => $this->getOptionLabel($positions, $position),
+                    (array) $value
+                ));
+            default:
+                return trim((string) $value);
+        }
+    }
+
+    /**
+     * Returns the label of an option, falling back to the stored value when
+     * the option no longer exists in the form.
+     *
+     * @param array $options
+     * @param mixed $key
+     *
+     * @return string
+     */
+    protected function getOptionLabel($options, $key)
+    {
+        if (is_scalar($key) && isset($options[$key])) {
+            return $this->toPlainText($options[$key]);
+        }
+        return is_scalar($key) ? (string) $key : '';
+    }
+
+    /**
+     * Strips the markup that rich-text form fields may contain.
+     *
+     * @param ?string $text
+     *
+     * @return string
+     */
+    protected function toPlainText($text)
+    {
+        return trim(html_entity_decode(strip_tags((string) $text), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
+    /**
+     * Returns a review form element, cached for the duration of the export.
+     *
+     * @param int $elementId
+     *
+     * @return ?ReviewFormElement
+     */
+    protected function getReviewFormElement($elementId)
+    {
+        if (!array_key_exists($elementId, $this->_reviewFormElements)) {
+            $reviewFormElementDao = DAORegistry::getDAO('ReviewFormElementDAO'); /** @var ReviewFormElementDAO $reviewFormElementDao */
+            $this->_reviewFormElements[$elementId] = $reviewFormElementDao->getById($elementId);
+        }
+        return $this->_reviewFormElements[$elementId];
+    }
+
+    /**
+     * Returns the localized title of a review form.
+     *
+     * @param int $reviewFormId
+     *
+     * @return string
+     */
+    protected function getReviewFormTitle($reviewFormId)
+    {
+        $reviewFormDao = DAORegistry::getDAO('ReviewFormDAO'); /** @var ReviewFormDAO $reviewFormDao */
+        $reviewForm = $reviewFormDao->getById($reviewFormId);
+        return $reviewForm ? $this->toPlainText($reviewForm->getLocalizedTitle()) : (string) $reviewFormId;
     }
 }

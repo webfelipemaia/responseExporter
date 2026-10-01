@@ -21,37 +21,39 @@ use PKP\db\DAO;
 class ResponseExporterDAO extends DAO
 {
     /**
-     * Returns the list of reviewers, authors and responses from a submission's review form.
-     * @param $contextId int
-     * @return object Response
+     * Returns one row per review assignment of the context, with reviewer data
+     * and the email of the submission's primary contact.
+     *
+     * @param int $contextId
+     *
+     * @return iterable
      */
-
     public function getReviewInfo($contextId)
     {
-
         $site = Application::get()->getRequest()->getSite();
         $locale = $site->getPrimaryLocale();
 
-        // Query to retrieve reviewer, author and review response data
-        $result = $this->retrieve(
+        // The author is resolved through the publication's primary contact, so each
+        // review assignment yields exactly one row regardless of the number of authors.
+        return $this->retrieve(
             'SELECT ra.review_id AS review_id,
-						ra.reviewer_id AS reviewer_id,
-						ra.submission_id AS submission_id,
-						ra.date_due AS review_date_due,
-						ra.date_response_due AS review_date_response_due,
-						reviewer.email AS reviewer_email,
-						rusg.setting_value AS reviewer_givenName,
-						rusf.setting_value AS reviewer_familyName,
-						author.email AS author_email
-				FROM review_assignments ra
-				LEFT JOIN submissions su ON ra.submission_id = su.submission_id
-				LEFT JOIN authors a ON su.current_publication_id = a.publication_id
-				LEFT JOIN users reviewer ON reviewer.user_id = ra.reviewer_id
-				LEFT JOIN user_settings rusg ON (reviewer.user_id = rusg.user_id AND rusg.setting_name = ? AND rusg.locale = ?)
-				LEFT JOIN user_settings rusf ON (reviewer.user_id = rusf.user_id AND rusf.setting_name = ? AND rusf.locale = ?)
-				LEFT JOIN users author ON author.email = a.email
-				WHERE su.context_id = ?
-				ORDER BY ra.reviewer_id',
+                    ra.reviewer_id AS reviewer_id,
+                    ra.submission_id AS submission_id,
+                    ra.date_due AS review_date_due,
+                    ra.date_response_due AS review_date_response_due,
+                    reviewer.email AS reviewer_email,
+                    rusg.setting_value AS reviewer_givenName,
+                    rusf.setting_value AS reviewer_familyName,
+                    a.email AS author_email
+            FROM review_assignments ra
+            JOIN submissions su ON ra.submission_id = su.submission_id
+            LEFT JOIN publications p ON p.publication_id = su.current_publication_id
+            LEFT JOIN authors a ON a.author_id = p.primary_contact_id
+            LEFT JOIN users reviewer ON reviewer.user_id = ra.reviewer_id
+            LEFT JOIN user_settings rusg ON (reviewer.user_id = rusg.user_id AND rusg.setting_name = ? AND rusg.locale = ?)
+            LEFT JOIN user_settings rusf ON (reviewer.user_id = rusf.user_id AND rusf.setting_name = ? AND rusf.locale = ?)
+            WHERE su.context_id = ?
+            ORDER BY ra.submission_id, ra.review_id',
             [
                 'givenName',
                 $locale,
@@ -60,51 +62,30 @@ class ResponseExporterDAO extends DAO
                 (int) $contextId
             ]
         );
-
-        return $result;
-    }
-
-
-    /**
-     * Returns the responses from the evaluation form.
-     * @return object Response
-     */
-
-    public function getResponses()
-    {
-
-
-        $result = $this->retrieve('
-				SELECT
-                review_id,
-                response_value
-            FROM
-                review_form_responses');
-
-        return $result;
     }
 
     /**
-     * Returns the numerical responses of the evaluation form.
-     * @return object Response
+     * Returns the review form responses of the context, ordered by review form
+     * and by the position of each element (question) inside its form.
+     *
+     * @param int $contextId
+     *
+     * @return iterable
      */
-
-    public function getNumericalResponses()
+    public function getResponses($contextId)
     {
-
-        $result = $this->retrieve(
-            '
-				SELECT
-                review_id,
-                response_value
-            FROM
-                review_form_responses
-            WHERE
-                response_type = ? AND response_value REGEXP "^-?[0-9]+(\\.[0-9]+)?$"',
-            ['string']
+        return $this->retrieve(
+            'SELECT rfr.review_id AS review_id,
+                    rfr.review_form_element_id AS review_form_element_id,
+                    rfr.response_type AS response_type,
+                    rfr.response_value AS response_value
+            FROM review_form_responses rfr
+            JOIN review_form_elements rfe ON rfe.review_form_element_id = rfr.review_form_element_id
+            JOIN review_assignments ra ON ra.review_id = rfr.review_id
+            JOIN submissions su ON su.submission_id = ra.submission_id
+            WHERE su.context_id = ?
+            ORDER BY rfe.review_form_id, rfe.seq, rfe.review_form_element_id',
+            [(int) $contextId]
         );
-
-        return $result;
     }
-
 }
