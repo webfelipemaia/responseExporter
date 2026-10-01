@@ -1,114 +1,127 @@
 # Response Exporter Plugin for OJS/OMP
 
-O **Response Exporter** é um plugin de relatório para os sistemas [Open Journal Systems (OJS)](https://pkp.sfu.ca/ojs/) e [Open Monograph Press (OMP)](https://pkp.sfu.ca/omp/) da PKP. Ele permite a exportação das respostas de formulários de avaliação preenchidos por revisores durante o processo editorial.
+**English** | [Português (Brasil)](README.pt_BR.md)
 
-Este plugin gera arquivos CSV contendo dados de revisores, autores e respostas dos formulários de avaliação. Também é possível exportar apenas respostas numéricas, úteis para análises estatísticas.
+**Response Exporter** is a report plugin for PKP's [Open Journal Systems (OJS)](https://pkp.sfu.ca/ojs/) and [Open Monograph Press (OMP)](https://pkp.sfu.ca/omp/). It exports the review form responses submitted by reviewers during the editorial process.
 
-
-## Funcionalidades
-
-- Exporta dados de revisões realizadas por submissão.
-- Inclui informações detalhadas dos revisores (nome, e-mail, datas de vencimento).
-- Inclui o e-mail do autor relacionado à submissão.
-- Exporta respostas de formulários de avaliação (textuais ou apenas numéricas).
-- Opção para exportar somente respostas numéricas.
+The plugin generates CSV files containing reviewer data, author data and review form responses. It can also export numerical responses only, which is useful for statistical analysis.
 
 
-## Compatibilidade
+## Features
 
-A partir da release **2.0.0.0**, o código do plugin foi portado para o estilo de plugin com namespace (PSR-4) exigido a partir do OJS/OMP 3.4, e é compatível com:
-
-- **OJS/OMP 3.4.x**
-- **OJS/OMP 3.5.x**
-
-> Isso foi necessário porque o OJS/OMP 3.5 removeu por completo a função `import()` e a classe `AppLocale`, usadas pelo estilo legado de plugin (`.inc.php`, sem namespace). Veja [CHANGELOG.md](CHANGELOG.md) para os detalhes técnicos.
-
-Para instalações em **OJS/OMP 3.2 ou 3.3**, use a release **1.0.0.0** (branch/tag anterior a este port), que mantém o estilo legado de plugin compatível com essas versões.
-
-
-## Instalação
-
-1. Copie a pasta do plugin `responseExporter` para o diretório `plugins/reports/` da sua instalação do OJS ou OMP.
-2. Acesse o painel de administração do sistema como Gerente ou Editor.
-3. Vá até **Plugins > Relatórios** e habilite o plugin `Response Exporter`.
+- Exports the reviews carried out for each submission.
+- Includes detailed reviewer information (name, email, due dates).
+- Includes the email of the author related to the submission.
+- Exports review form responses, one column per review form question.
+- Shows the option label (not its internal position) for radio buttons, drop-down boxes and checkboxes.
+- Option to export numerical responses only.
+- Works with MySQL/MariaDB and PostgreSQL.
 
 
-## Uso
+## Compatibility
 
-1. Acesse o menu:  
-   `Estatísticas > Relatórios`
-2. Clique em **Exportar** no item `Response Exporter`.
-3. Um arquivo CSV será gerado e baixado automaticamente com os dados coletados.
+Release **1.0.0.0** follows the namespaced (PSR-4) plugin style introduced in OJS/OMP 3.4 and is compatible with:
 
+- **OJS/OMP 3.4.x** (PHP 8.0.2 or later)
+- **OJS/OMP 3.5.x** (PHP 8.2 or later)
 
-## Configurações
-
-O plugin possui uma configuração opcional:
-
-- **Exportar apenas respostas numéricas**: útil para relatórios quantitativos.
-
-Para configurar:
-
-1. Clique em **Configurações** no menu do plugin.
-2. Marque ou desmarque a opção `Exportar apenas respostas numéricas`.
+OJS/OMP 3.3 and earlier are not supported.
 
 
-## Formato do Arquivo CSV
+## Installation
 
-Cada linha do CSV representa uma avaliação/revisão, com as seguintes colunas:
-
-- `submission_id`: ID da submissão.
-- `review_date_due`: Data limite da avaliação.
-- `review_date_response_due`: Data limite para resposta do convite.
-- `reviewer_id`: ID do revisor.
-- `reviewer_email`: E-mail do revisor.
-- `reviewer_familyName`: Sobrenome do revisor.
-- `reviewer_givenName`: Primeiro nome do revisor.
-- `author_email`: E-mail do autor (da submissão ou monografia).
-- `response_value_1`, `response_value_2`, ...: Colunas com as respostas do formulário de avaliação.
+1. Copy the `responseExporter` plugin folder into the `plugins/reports/` directory of your OJS or OMP installation. It must be under `plugins/reports/` (not `plugins/generic/`), otherwise the plugin classes cannot be found.
+2. Log in to the administration dashboard as a Manager or Editor.
+3. Go to **Plugins > Reports** and enable the `Response Exporter` plugin.
 
 
-## Requisitos
+## Usage
 
-- OJS ou OMP 3.x com suporte a plugins de relatório.
-- Formulários de avaliação com respostas registradas em `review_form_responses`.
-
-
-## Desenvolvimento
-
-O plugin é composto pelas seguintes classes principais:
-
-- `ResponseExporterPlugin`: Classe que registra e gerencia o plugin.
-- `ResponseExporterManager`: Responsável pela geração e exportação do CSV.
-- `ResponseExporterDAO`: Lida com as consultas ao banco de dados para obter revisores e respostas.
-- `ResponseExporterSettingsForm`: Formulário de configuração no painel administrativo.
-
-Todas as classes vivem sob o namespace `APP\plugins\reports\responseExporter`, seguindo o padrão adotado pelos plugins nativos do OJS/OMP 3.4+ (ex.: `pkp/reviewReport`).
+1. Open the menu:  
+   `Statistics > Reports`
+2. Click **Export** on the `Response Exporter` item.
+3. A CSV file with the collected data will be generated and downloaded automatically.
 
 
-## Licença
+## Settings
 
-Distribuído sob a mesma licença dos sistemas PKP (GNU General Public License). Consulte a [licença do plugin](LICENSE) para mais informações. Consulte a [licença oficial](https://pkp.sfu.ca/software/ojs/license/) para mais informações.
+The plugin has one optional setting:
+
+- **Export numerical responses only**: useful for quantitative reports.
+
+To configure it:
+
+1. Click **Settings** in the plugin menu.
+2. Check or uncheck the `Export numerical responses only` option.
+
+
+## CSV File Format
+
+Each CSV row represents one review assignment. Column headers are written in the user's interface language; in English they are:
+
+- `Submission ID`
+- `Review Due Date`
+- `Response Due Date` (due date for responding to the review invitation)
+- `Reviewer ID`
+- `Reviewer Email`
+- `Reviewer Last Name`
+- `Reviewer First Name`
+- `Author Email`: email of the submission's primary contact.
+- One column per review form question, headed by the question text and ordered as in the form. When more than one review form has answers, the header is prefixed with the form title (`Form title - Question`).
+
+Response values:
+
+- Text fields: the text typed by the reviewer.
+- Radio buttons and drop-down boxes: the label of the chosen option.
+- Checkboxes: the labels of the checked options, separated by `; `.
+
+With **Export numerical responses only** enabled, only values that are numbers are exported (for example, a text field containing `8.5` or a radio button whose option label is `4`), and only the questions with numerical answers get a column.
+
+> Response columns only appear when the journal or press has completed reviews that used a review form.
+
+
+## Requirements
+
+- OJS or OMP 3.4.x or 3.5.x.
+- MySQL/MariaDB or PostgreSQL.
+- Review forms (**Settings > Workflow > Review > Review Forms**) assigned to the reviews, so that there are responses to export.
+
+
+## Development
+
+The plugin consists of the following main classes:
+
+- `ResponseExporterPlugin`: Registers and manages the plugin.
+- `ResponseExporterManager`: Generates and exports the CSV, including converting stored option positions back to option labels.
+- `ResponseExporterDAO`: Handles the database queries that fetch reviewers and responses.
+- `ResponseExporterSettingsForm`: Settings form in the administration dashboard.
+
+All classes live under the `APP\plugins\reports\responseExporter` namespace, following the pattern adopted by the native OJS/OMP 3.4+ plugins (e.g. `pkp/reviewReport`).
+
+
+## License
+
+Distributed under the same license as the PKP applications (GNU General Public License). See the [plugin license](LICENSE) for more information. See the [official license](https://pkp.sfu.ca/software/ojs/license/) for more information.
 
 ---
 
-## Autor
+## Author
 
-Desenvolvido por [Felipe Maia Barbosa](https://github.com/webfelipemaia).  
-Contribuições, sugestões e correções são bem-vindas!
-
-
-## Melhorias Futuras
-
-- [ ] Tornar a formatação de datas configurável.
-- [ ] Adicionar suporte à exportação dos dados em formato JSON, além do CSV.
+Developed by [Felipe Maia Barbosa](https://github.com/webfelipemaia).  
+Contributions, suggestions and fixes are welcome!
 
 
-## Contribuindo
+## Future Improvements
 
-Pull requests e issues são bem-vindos!  
-Para contribuir:
+- [ ] Make date formatting configurable.
+- [ ] Add support for exporting data as JSON in addition to CSV.
 
-1. Faça um fork do repositório.
-2. Crie um branch para sua feature ou correção.
-3. Envie um pull request com uma descrição clara da mudança proposta.
+
+## Contributing
+
+Pull requests and issues are welcome!  
+To contribute:
+
+1. Fork the repository.
+2. Create a branch for your feature or fix.
+3. Open a pull request with a clear description of the proposed change.

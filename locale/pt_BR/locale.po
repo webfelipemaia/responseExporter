@@ -14,7 +14,7 @@ msgstr ""
 "X-Generator: \n"
 
 msgid "plugins.reports.responseExporter.displayName"
-msgstr "Review Response Exporter Plugin"
+msgstr "Relatório de Respostas a Avaliações"
 
 msgid "plugins.reports.responseExporter.description"
 msgstr "Este plugin gera um relatório em formato CSV (planilha eletrônica) com as respostas das avaliações associadas às submissões. Ele oferece duas opções de exportação: uma para incluir apenas respostas numéricas e outra para exportar todas as respostas."
