@@ -66,7 +66,7 @@ Each CSV row represents one review assignment. Column headers are written in the
 - `Reviewer Email`
 - `Reviewer Last Name`
 - `Reviewer First Name`
-- `Author Email`: email of the submission's primary contact.
+- `Author Email`: email of the submission's primary contact, or of its first author when no primary contact is set. Empty when the submission has no authors.
 - One column per review form question, headed by the question text and ordered as in the form. When more than one review form has answers, the header is prefixed with the form title (`Form title - Question`).
 
 Response values:

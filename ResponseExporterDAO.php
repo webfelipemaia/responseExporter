@@ -33,8 +33,9 @@ class ResponseExporterDAO extends DAO
         $site = Application::get()->getRequest()->getSite();
         $locale = $site->getPrimaryLocale();
 
-        // The author is resolved through the publication's primary contact, so each
-        // review assignment yields exactly one row regardless of the number of authors.
+        // The author is resolved through the publication's primary contact (or its first
+        // author when no primary contact is set), so each review assignment yields exactly
+        // one row regardless of the number of authors.
         return $this->retrieve(
             'SELECT ra.review_id AS review_id,
                     ra.reviewer_id AS reviewer_id,
@@ -42,13 +43,16 @@ class ResponseExporterDAO extends DAO
                     ra.date_due AS review_date_due,
                     ra.date_response_due AS review_date_response_due,
                     reviewer.email AS reviewer_email,
-                    rusg.setting_value AS reviewer_givenName,
-                    rusf.setting_value AS reviewer_familyName,
+                    rusg.setting_value AS reviewer_given_name,
+                    rusf.setting_value AS reviewer_family_name,
                     a.email AS author_email
             FROM review_assignments ra
             JOIN submissions su ON ra.submission_id = su.submission_id
             LEFT JOIN publications p ON p.publication_id = su.current_publication_id
-            LEFT JOIN authors a ON a.author_id = p.primary_contact_id
+            LEFT JOIN authors a ON a.author_id = COALESCE(
+                p.primary_contact_id,
+                (SELECT fa.author_id FROM authors fa WHERE fa.publication_id = p.publication_id ORDER BY fa.seq, fa.author_id LIMIT 1)
+            )
             LEFT JOIN users reviewer ON reviewer.user_id = ra.reviewer_id
             LEFT JOIN user_settings rusg ON (reviewer.user_id = rusg.user_id AND rusg.setting_name = ? AND rusg.locale = ?)
             LEFT JOIN user_settings rusf ON (reviewer.user_id = rusf.user_id AND rusf.setting_name = ? AND rusf.locale = ?)

@@ -66,7 +66,7 @@ Cada linha do CSV representa uma avaliação. Os cabeçalhos das colunas seguem 
 - `E-mail do avaliador`
 - `Sobrenome do avaliador`
 - `Nome do avaliador`
-- `E-mail do autor`: e-mail do contato principal da submissão.
+- `E-mail do autor`: e-mail do contato principal da submissão ou, se não houver contato principal, do primeiro autor. Fica vazio quando a submissão não tem autores.
 - Uma coluna por pergunta do formulário de avaliação, com o texto da pergunta no cabeçalho, na mesma ordem do formulário. Quando há respostas de mais de um formulário, o cabeçalho recebe o título do formulário como prefixo (`Título do formulário - Pergunta`).
 
 Valores das respostas:

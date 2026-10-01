@@ -16,6 +16,7 @@
 
 namespace APP\plugins\reports\responseExporter;
 
+use APP\core\Application;
 use PKP\db\DAORegistry;
 use PKP\plugins\ReportPlugin;
 use PKP\reviewForm\ReviewFormDAO;
@@ -143,7 +144,7 @@ class ResponseExporterManager extends ReportPlugin
             }
             // Disambiguate questions when more than one review form is exported
             if (count($reviewFormIds) > 1) {
-                $label = $this->getReviewFormTitle($element->getReviewFormId()) . ' - ' . $label;
+                $label = $this->getReviewFormTitle($element->getReviewFormId(), $context->getId()) . ' - ' . $label;
             }
             $header[] = $label;
         }
@@ -160,8 +161,8 @@ class ResponseExporterManager extends ReportPlugin
                 $reviewer->review_date_response_due,
                 $reviewer->reviewer_id,
                 $reviewer->reviewer_email,
-                $reviewer->reviewer_familyName,
-                $reviewer->reviewer_givenName,
+                $reviewer->reviewer_family_name,
+                $reviewer->reviewer_given_name,
                 $reviewer->author_email,
             ];
 
@@ -258,13 +259,16 @@ class ResponseExporterManager extends ReportPlugin
      * Returns the localized title of a review form.
      *
      * @param int $reviewFormId
+     * @param int $contextId
      *
      * @return string
      */
-    protected function getReviewFormTitle($reviewFormId)
+    protected function getReviewFormTitle($reviewFormId, $contextId)
     {
         $reviewFormDao = DAORegistry::getDAO('ReviewFormDAO'); /** @var ReviewFormDAO $reviewFormDao */
-        $reviewForm = $reviewFormDao->getById($reviewFormId);
+        // The assoc type/id must always be given: despite being documented as optional,
+        // ReviewFormDAO::getById() always binds them in its query (OJS/OMP 3.4 and 3.5).
+        $reviewForm = $reviewFormDao->getById($reviewFormId, Application::getContextAssocType(), $contextId);
         return $reviewForm ? $this->toPlainText($reviewForm->getLocalizedTitle()) : (string) $reviewFormId;
     }
 }
