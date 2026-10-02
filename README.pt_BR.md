@@ -99,6 +99,25 @@ O plugin é composto pelas seguintes classes principais:
 Todas as classes vivem sob o namespace `APP\plugins\reports\responseExporter`, seguindo o padrão adotado pelos plugins nativos do OJS/OMP 3.4+ (ex.: `pkp/reviewReport`).
 
 
+### Testes
+
+O plugin segue o [guia de testes da PKP](https://docs.pkp.sfu.ca/dev/testing/en/plugins-themes): testes de integração escritos com Cypress rodam no GitHub Actions por meio da [pkp/pkp-github-actions](https://github.com/pkp/pkp-github-actions), sobre os [datasets de teste da PKP](https://github.com/pkp/datasets).
+
+- `cypress/tests/functional/ResponseExporter.cy.js`: habilita o plugin, verifica se ele aparece em **Estatísticas > Relatórios**, exporta o CSV com todas as respostas e só com as numéricas, e confere as colunas e os valores.
+- `.github/actions/seedReviewForms.php`: os datasets têm avaliações, mas não têm formulários de avaliação; este script adiciona dois formulários com respostas ao contexto `publicknowledge` antes dos testes.
+- `.github/actions/tests.sh`: roda o script acima e depois o Cypress; é chamado pela GitHub Action.
+- `.github/workflows/main.yml`: roda os testes para OJS e OMP 3.4 e 3.5, com MySQL e PostgreSQL.
+
+Para rodar os testes localmente, monte o OJS ou o OMP a partir do código-fonte, como descrito em [Getting started](https://docs.pkp.sfu.ca/dev/testing/en/getting-started), carregue o dataset correspondente, coloque este plugin em `plugins/reports/responseExporter` e rode, na raiz da aplicação:
+
+```
+php plugins/reports/responseExporter/.github/actions/seedReviewForms.php
+npx cypress run --config '{"specPattern":["plugins/reports/responseExporter/cypress/tests/functional/*.cy.js"]}'
+```
+
+Os arquivos de teste ficam fora do pacote de release (veja `.gitattributes`).
+
+
 ## Licença
 
 Distribuído sob a mesma licença dos sistemas PKP (GNU General Public License). Consulte a [licença do plugin](LICENSE) para mais informações. Consulte a [licença oficial](https://pkp.sfu.ca/software/ojs/license/) para mais informações.

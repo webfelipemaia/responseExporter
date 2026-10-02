@@ -66,8 +66,9 @@ class ResponseExporterManager extends ReportPlugin
     }
 
     /**
-     * get date published
-     * @return date
+     * Get the DAO used to read the report data.
+     *
+     * @return ResponseExporterDAO
      */
     public function getResponseExporterDAO()
     {

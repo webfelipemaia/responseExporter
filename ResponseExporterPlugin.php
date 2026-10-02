@@ -90,7 +90,8 @@ class ResponseExporterPlugin extends GenericPlugin
                         null,
                         'stats',
                         'reports',
-                        'report',
+                        // The path must be an array: Dispatcher::url() requires ?array since 3.5.0
+                        ['report'],
                         ['pluginName' => $this->getName()]
                     )),
                     __('manager.statistics.reports'),
