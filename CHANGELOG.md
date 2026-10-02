@@ -22,3 +22,4 @@ Initial public release, for OJS/OMP 3.4.x and 3.5.x.
 - The plugin must be installed under `plugins/reports/responseExporter`.
 - Review form responses are joined to each row by `review_id` (the review assignment), never by the reviewer's user id.
 - Only the review form responses of the current journal or press are read.
+- Cypress integration tests, run on GitHub Actions (pkp/pkp-github-actions) for OJS and OMP 3.4 and 3.5, with MySQL and PostgreSQL.

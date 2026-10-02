@@ -15,7 +15,7 @@ msgid "plugins.reports.responseExporter.displayName"
 msgstr "Review Response Exporter Plugin"
 
 msgid "plugins.reports.responseExporter.description"
-msgstr "This plugin generates a CSV (spreadsheet) report with the review responses associated with submissions. It offers two export options: one for numeric responses only and another for all responses."
+msgstr "The Response Exporter plugin generates a CSV report with the review responses associated with submissions. It offers two export options: one for numeric responses only and another for all responses."
 
 msgid "plugins.reports.responseExporter.submission.Id"
 msgstr "Submission ID"

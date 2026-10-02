@@ -22,3 +22,4 @@ Primeiro lançamento público, para OJS/OMP 3.4.x e 3.5.x.
 - O plugin precisa ser instalado em `plugins/reports/responseExporter`.
 - As respostas do formulário são ligadas a cada linha pelo `review_id` (a avaliação), nunca pelo ID de usuário do avaliador.
 - Só são lidas as respostas de formulário da revista ou editora atual.
+- Testes de integração com Cypress, rodando no GitHub Actions (pkp/pkp-github-actions) para OJS e OMP 3.4 e 3.5, com MySQL e PostgreSQL.

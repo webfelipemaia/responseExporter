@@ -1,0 +1,4 @@
+# Test and CI files are not part of the release package (git archive)
+/.github export-ignore
+/cypress export-ignore
+/.gitattributes export-ignore
