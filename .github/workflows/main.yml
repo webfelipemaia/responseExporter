@@ -1,0 +1,60 @@
+on: [push, pull_request]
+name: responseExporter
+jobs:
+  responseExporter:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # OJS/OMP 3.5 (PHP 8.2+, node 20)
+          - application: ojs
+            branch: stable-3_5_0
+            node-version: 20
+            php-version: 8.3
+            database: mysql
+          - application: ojs
+            branch: stable-3_5_0
+            node-version: 20
+            php-version: 8.2
+            database: pgsql
+          - application: omp
+            branch: stable-3_5_0
+            node-version: 20
+            php-version: 8.3
+            database: pgsql
+          - application: omp
+            branch: stable-3_5_0
+            node-version: 20
+            php-version: 8.2
+            database: mysql
+          # OJS/OMP 3.4 (PHP 8.0.2+, node 16)
+          - application: ojs
+            branch: stable-3_4_0
+            node-version: 16
+            php-version: 8.2
+            database: mysql
+          - application: ojs
+            branch: stable-3_4_0
+            node-version: 16
+            php-version: 8.1
+            database: pgsql
+          - application: omp
+            branch: stable-3_4_0
+            node-version: 16
+            php-version: 8.2
+            database: pgsql
+          - application: omp
+            branch: stable-3_4_0
+            node-version: 16
+            php-version: 8.1
+            database: mysql
+    name: ${{ matrix.application }} ${{ matrix.branch }} PHP ${{ matrix.php-version }} ${{ matrix.database }}
+    steps:
+      - uses: pkp/pkp-github-actions@v1
+        with:
+          node_version: ${{ matrix.node-version }}
+          branch: ${{ matrix.branch }}
+          repository: pkp
+          plugin: true
+          dataset_inject: true
