@@ -1,0 +1,4 @@
+.github
+cypress
+.gitattributes
+exclusions.txt
